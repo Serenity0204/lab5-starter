@@ -4,15 +4,30 @@
 int num = 0;
 
 char const HTTP_404_NOT_FOUND[] = "HTTP/1.1 404 Not Found\r\nContent-Type: text/plain\r\n\r\n";
+char const HTTP_SUCCESS[] = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n";
+
 
 void handle_404(int client_sock, char *path)  {
     printf("SERVER LOG: Got request for unrecognized path \"%s\"\n", path);
 
     char response_buff[BUFFER_SIZE];
     snprintf(response_buff, BUFFER_SIZE, "Error 404:\r\nUnrecognized path \"%s\"\r\n", path);
+    
     // snprintf includes a null-terminator
-
+    
     // TODO: send response back to client?
+    write(client_sock, HTTP_404_NOT_FOUND, strlen(HTTP_404_NOT_FOUND));
+    write(client_sock, response_buff, strlen(response_buff));
+}
+
+void handle_shownum(int client_sock, char* path)
+{
+    printf("ACCESS shownum\n"); 
+ 
+    char response_buff[BUFFER_SIZE];
+    sprintf(response_buff, "num is: %d", num);
+    write(client_sock, HTTP_SUCCESS, strlen(HTTP_SUCCESS));
+    write(client_sock, response_buff, strlen(response_buff));
 }
 
 
@@ -26,6 +41,18 @@ void handle_response(char *request, int client_sock) {
         printf("Invalid request line\n");
         return;
     }
+    
+    if(strstr(path, "shownum"))
+    {
+       handle_shownum(client_sock, path);
+       return;
+    }
+    if(strstr(path, "increment"))
+    {
+       // handle_increment(client_sock, path);
+       return;
+    }
+    
 
     handle_404(client_sock, path);
 }
